@@ -126,7 +126,21 @@ class GMM():
             np.ndarray -- Posterior probabilities to each Gaussian (shape is
                 (features.shape[0], self.n_clusters))
         """
-        raise NotImplementedError()
+        temp = np.empty((features.shape[0], self.n_clusters))
+        for i in range(features.shape[0]):
+            for k in range(self.n_clusters):
+
+                temp[i][k] = self._posterior(features[i], k )
+            #div = 0
+            #for k in range(self.n_clusters):
+               # est = self._log_likelihood(features[i], k)
+               # temp[i][k] = est
+               # div += est 
+            #temp[i] = temp[i]/div
+        return temp
+
+
+
 
     def _m_step(self, features, assignments):
         """
@@ -155,7 +169,15 @@ class GMM():
             covariances -- Updated covariances
             mixing_weights -- Updated mixing weights
         """
-        raise NotImplementedError()
+        resp = np.sum(assignments, axis = 1) 
+        mixing_weights = resp/assignments.shape[0]
+        means = mixing_weights
+        covariances = mixing_weights
+
+        return means, covariances, mixing_weights
+
+
+        
 
     def _init_covariance(self, n_features):
         """
@@ -203,7 +225,13 @@ class GMM():
         Returns:
             np.ndarray -- log likelihoods of each feature given a Gaussian.
         """
-        raise NotImplementedError()
+        mean = self.means[k_idx]
+        cov = self.covariances[k_idx]
+        weights = self.mixing_weights[k_idx]
+        ll = multivariate_normal.logpdf(features, mean, cov)
+        ll += np.log(weights) 
+        return ll
+
 
     def _overall_log_likelihood(self, features):
         denom = [
